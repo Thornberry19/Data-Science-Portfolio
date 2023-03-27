@@ -24,4 +24,4 @@ This project is a full encompasing data science project, including exploratory d
 
 ---
 
-
+If you have any other questions, comments or concerns, you can reach me through my email listed on my resume.
