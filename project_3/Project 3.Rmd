@@ -1,0 +1,256 @@
+Data Acquisition, Data Description, EDA, Problem Specification: Josh Compton
+Machine Learning Solution, Performance and Analysis: Allen Thornberry
+
+
+```{r, echo=FALSE, include=FALSE}
+library(ROCR)
+library(e1071)
+library(randomForest)
+```
+# Project 3 EDA & Predictive Models
+By: Josh Compton and Allen Thornberry
+Date: April 4, 2019
+
+***
+
+# Table of Contents
+- [Data Acquisition]
+- [Data Description]
+- [Exploratory Data Analysis]
+- [Problem Specification]
+- [Machine Learning Solution]
+- [Performance and Analysis]
+
+***
+
+# Data Acquisition
+By: Josh Compton
+
+The data set "heart" was downloaded through kaggle.com. Once acquired, the file was opened in excel as a .csv file. To upload it into RStudio, I used "file, import dataset, from text (base), import" and uploaded the file, which is saved as 'heart' inside RStudio. The code was created in RStudio and looks as such: 
+
+```{r, echo=TRUE}
+heart <- read.csv("C:\\Users\\Allen\\Desktop\\Data Science in R\\project3\\heart.csv")
+```
+
+```{r, echo=FALSE}
+# data cleaning
+names(heart) <- c("age", colnames(heart[,2:14]))
+```
+
+Now we are able to analyze the data inside RStudio, and we can begin the fun stuff. 
+
+***
+
+# Data Description
+By: Josh Compton
+
+The data set "heart" are the results of a survey of males and females from age 29-77, with the goal being to find traits that correlate to heart disease. The data set has 13 different variables that range from basic information like age to complex information such as having exercise induced angina. The category age (i.age) labels the age of the patient, the sex category (sex) uses 1 for male and 0 for female to label the sex of the patient, the level of chest pain (cp) that the patient has is labeled from 0-3, with 0 being none and 3 being most. Resting blood pressure (trestbps) and serum cholesterol (chol) are labeled as they are. If the fasting blood sugar (fbs) of the patient is above 120 mg/dl, it is labeled as 1 and 0 if it is lower. There are three levels (0, 1, 2) for resting electrocardiographic results (restecg) and maximum heart rate achieved (thalach) is labeled as bpm. Exercised induced angina (exang) in patients is labeled as a 1 if it exists and 0 if it does not. ST depression induced by exercise relative to rest (oldpeak) is labeled from 0.0-6.2. Slope of the peak exercise ST segment (slope) is either 0, 1, or 2. Fluoroscopy is used to color the majors vessels (thal) that each patient have, which range from 0-3. The target category is labeled as either a 1 or 0, where 1 is whether the patient has heart disease and 0 is if they don't. These are the factors that the researchers tested to check which variables contribute most or least to whether heart disease is present. I believe that the three factors that contribute most to heart disease are chol, trestbps, and thalach. We will use graphs and machine learning to see whether the hypothesis is correct. 
+
+***
+
+# Exploratory Data Analysis
+By: Josh Compton
+
+We will use Exploratory Data Analysis (EDA) to dive deeper into the variables that can help detect heart disease. We will test all the variables and see whether our hypothesis variables are correct using graphs and clustering.
+
+The first variable we will take a look at that positively correlates with heart disease is thalach (maximum heart rate achieved). We use a box plot to test and see whether thalach relates to heart disease. Looking at this graph: 
+```{r, echo = FALSE, warning = FALSE} 
+boxplot(thalach~target, heart, xlab = "Target", ylab = "Maximum Heart Rate", col = "gray")
+``` 
+
+Notice that the average maximum heart rate for the patients with heart disease is ~160 bpm and the average for those without is ~20 bpm lower at ~140 bpm. As we can see, the high bpm and the majority of bpm for those with heart disease are both higher than those without. 
+
+As hypothesised, I thought that chol would be a factor that related to the presence of heart disease in patients. Looking at this graph:
+```{r, echo = FALSE, warning = FALSE}
+boxplot(chol~target, heart, xlab = "Target", ylab = "Serum Cholesterol", col = "gray")
+```
+
+we can see that chol has more of a negative correlation to heart disease than it does positive. We can see this by looking at the mean and distribution of the 'box' as they are both higher in the non-heart disease column than the column containing heart disease. However, the highest chol total does reside in a patient that has heart disease. This acts as a large outlier and does not affect our results.
+
+Looking at the last variable that we hypothesized to be related to heart disease, trestbps, I believed that it would have a positive correlation to the presence of heart disease. As we can see by this graph:
+```{r, echo = FALSE, warning = FALSE}
+boxplot(trestbps~target, heart, xlab = "Target", ylab = "Resting Blood Pressure", col = "gray")
+```
+
+the average for heart disease owners and non-heart disease owners are nearly equivalent. However, the 'box' distribution and high blood pressure is slightly larger for the group that does not have heart disease, showing that if there is a correlation between resting blood pressure and heart disease, it is negative. However, from this data there is not enough evidence that can relate resting blood pressure to either the presence of heart disease or not.
+
+When looking at the factors that related to heart disease, we used clustering to try to group together different patients into whether they have or do not have heart disease based off their data. Clustering is a method of unsupervised machine learning in which the machine takes the data from each variable and tries to group together the patients into different groups. For this data set, we only wanted to find two groups, those being patients with or without heart disease. We used the simple clustering method of k-means, which finds observations and clusters them based on their location in geometric space. There are some advantages to this method, which is that it is very fast and can find accurate clusters. For this data set, our code looks like this: 
+```{r, echo = TRUE, warning = FALSE}
+kmclusters <- kmeans(heart[,1:2], centers = 2)
+heart$km <- kmclusters$cluster
+View(heart)
+```
+We set centers = 2 because we want to have only two groups (1 and 2) that they are being clustered in. Once clustered, we add a column onto our data frame that shows a 1 or 2 for each patient. These clusters were used to compare to the target data, and there was not a significant correlation between the two columns. 
+
+***
+
+# Problem Specification
+By: Josh Compton
+
+Heart disease is a major problem across the world, so it is up to us data scientists to find ways to help avoid and prevent future disease based on what we know today. We want to use the data that we have now to find models that correlate to the existence of heart disease so we can help medical professionals detect disease sooner. To do that, we can use machine learning to find which variables are the greatest factors in heart disease and cut it off from the source. 
+
+***
+
+# Machine Learning Solution
+By: Allen Thornberry
+
+```{r, echo=FALSE}
+# cross validation preparation and modeling variables
+model_var <- c("sex", "cp", "trestbps", "thalach", "exang", "oldpeak", "ca", "thal")
+heart$group <- sample(1:10, nrow(heart), replace = TRUE)
+```
+Machine learning is a process which allows the computer to recognize patterns in data and then predict where new data will fall in those patterns. This report uses three different machine learning models, including support vector machine(SVM), randomForest, and logistical linear regression(GLM). To create the most accurate models possible, a process called cross-validation will be used. This process breaks up the data into multiple sections. A majority of the sections will be used as training data for each of the models to learn from. The remaining sections of the data will be used to determine how fit or how realistic the results are.
+
+The best results come from data that is not over-fit or under-fit. To get these results one needs to find the variables that are very important when predicting the target. Finding this can be hard and using the wrong variables will over-fit the models. To find the best variables the step method, an iterative process, was used to trim out variables that had little effect on the predictions results. The variables used are sex, chest pain, resting blood pressure, maximum heart rate achieved, exercise induced enigma, ST depression relative to rest, major vessels colored by fluoroscopy, if there is a reversible defect.
+
+#### Support Vector Machine
+Support vector machine or SVM simply creates a line that can best classify the data and estimate target values. This model does not need any external packages to run in R. SVM was chosen to get quick and accurate models to start with.
+
+This model was able to accurately predict whether a patient had heart disease or not with a approximately a 89.7% accuracy rate.
+
+#### RandomForest
+RandomForest is a decision tree, based model, modeling by repeatedly creating decision trees and using the one with the best results. Decision trees are basically forks in the road that have two options that help determine the possibility of getting a specific result. It is a good machine learning model because of its ability to assign probabilities to specific branches of the tree and choose paths similar to how humans process things. In order to use a randomForest model, the library "randomForest" must be installed. 
+
+This model was successful at predicting whether or not a patient had heart disease 89.8% of the time.
+
+#### Logistical Linear Regression
+Logistical linear regression creates a line of best fit. This method generates a line that best represents the data, using it to predict future results based on variables used to make the original line. Being a strong classical approach to estimation, this type of regression is effective because it is easiest to understand through statistics. Using logistical linear regression requires no external packages and is included in base R.
+
+This model was able to predict heart disease 89.8% of the time.
+
+***
+
+# Performance and Analysis
+By: Allen Thornberry
+
+This section will discuss and analyze performance metrics of each of the models. The primary metric used if called AUC. This metric measures how accurate the predictions were. In order for the data to be the most accurate the AUC of the training and testing sets must be as close to each other as possible. Each AUC value will have a graph that represents the probability spread of the trained data, showing how the model performed overall. The following sections will show the AUC graph then the AUC values for the testing sets and training sets, and then give an analysis of the findings.
+
+#### Support Vector Machine
+SVM's testing set results:
+
+```{r, echo=FALSE}
+# SVM modeling ---------------------------------------------------------------
+# cross validation modeling loop
+for (group in 1:10){
+  train <- heart[heart$group != group, c(model_var, "target")]
+  test <- heart[heart$group == group, model_var]
+  
+  model <- svm(target ~ ., train, cost = .01, tolerance = .01)
+
+  heart$prediction[heart$group == group] <- predict(model, test, type = 'response')
+  train$prediction <- predict(model, train)
+}
+
+# auc rating stuff for end result and all cross validation
+pr <- ROCR::prediction(heart$prediction, heart$target)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+print(auc)
+```
+
+SVM's training set results:
+
+```{r, echo=FALSE}
+# auc rating stuff for training set
+pr <- ROCR::prediction(train$prediction, train$target)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+print(auc)
+``` 
+
+Since the AUC values and probability curves are only off by a small amount it makes the performance of this model approximately 90% accurate.
+
+#### RandomForest
+RandomForest's testing set results:
+
+```{r, echo=FALSE, warning=FALSE}
+# randomForest modeling ------------------------------------------------------
+# cross validation modeling loop
+for (group in 1:10){
+  train <- heart[heart$group != group, c(model_var, "target")]
+  test <- heart[heart$group == group, model_var]
+  
+  model <- randomForest(target ~ ., data=train, ntree=6000, maxnodes = 5)
+  
+  heart$prediction[heart$group == group] <- predict(model, test, type = 'response')
+  train$prediction <- predict(model, train)
+}
+
+# auc rating stuff for end result and all cross validation
+pr <- ROCR::prediction(heart$prediction, heart$target)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+print(auc)
+```
+
+RandomForest's training set results:
+
+```{r, echo=FALSE}
+# auc rating stuff for training set
+pr <- ROCR::prediction(train$prediction, train$target)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+print(auc)
+```
+
+Due to the nature of decision trees, it is always hard to make a the model fit data properly. The accuracy of the testing results is close to that of the SVM model, making it a valid prediction. But since the model is approximately 4% over-fit, this is not the best model to use when predicting based off of new data.
+
+#### Logistical Linear Regression
+Logistical linear regression's testing set results:
+```{r, echo=FALSE}
+# glm modeling --------------------------------------------------------------
+# cross validation modeling loop
+for (group in 1:10){
+  train <- heart[heart$group != group, c(model_var, "target")]
+  test <- heart[heart$group == group, model_var]
+
+  model <- glm(target ~ ., train, family = binomial(link = 'logit'))
+  #step(model, direction = "both", trace = 1)
+  
+  heart$prediction[heart$group == group] <- predict(model, test, type = 'response')
+  train$prediction <- predict(model, train)
+}
+
+# auc rating stuff for end result and all cross validation
+pr <- ROCR::prediction(heart$prediction, heart$target)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+print(auc)
+```
+
+Logistical linear regression's training set results:
+
+```{r, echo=FALSE}
+# auc rating stuff for training set
+pr <- ROCR::prediction(train$prediction, train$target)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+print(auc)
+```
+
+This model gave the most reliable results. It is approximately 90% accurate and can handle new data confidently.
+
+#### Analysis
+Based off the three models it is safe to say that these models can predict whether or not someone has heart disease at approximately 90% accuracy, making them effective predictive models. I believe it is possible to generate 95% accurate results that are not under or over-fit if there were more observations and other external variable types added to the data set.
+
+***
+
+# Index
+- [Data Acquisition]
+- [Data Description]
+- [Exploratory Data Analysis]
+- [Problem Specification]
+- [Machine Learning Solution]
+- [Performance and Analysis]

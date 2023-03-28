@@ -1,0 +1,175 @@
+```{r, echo = FALSE}
+# Project 1 R script
+# data loading
+# link to webpage with data: https://www.lendingclub.com/info/download-data.action
+mainData <- read.csv(file = "C:\\Users\\Allen\\Desktop\\Data Science in R\\project1\\LoanStats3a.csv")
+
+# data cleaning
+mainData$member_id <- NULL
+mainData$url <- NULL
+mainData$desc <- NULL
+mainData$purpose <- NULL
+mainData$title <- NULL
+mainData$zip_code <- NULL
+mainData$addr_state <- NULL
+mainData$mths_since_last_record <- NULL
+mainData$initial_list_status <- NULL
+mainData$out_prncp_inv <- NULL
+mainData$total_pymnt <- NULL
+mainData$recoveries <- NULL
+mainData$collection_recovery_fee <- NULL
+mainData$last_credit_pull_d <- NULL
+mainData$collections_12_mths_ex_med <- NULL
+mainData$mths_since_last_major_derog <- NULL
+mainData$policy_code <- NULL
+mainData$application_type <- NULL
+mainData$annual_inc_joint <- NULL
+mainData$dti_joint <- NULL
+mainData$verification_status_joint <- NULL
+mainData$acc_now_delinq <- NULL
+mainData$tot_coll_amt <- NULL
+mainData$tot_cur_bal <- NULL
+mainData$open_acc_6m <- NULL
+mainData[82:145] <- NULL
+mainData[35:80] <- NULL
+mainData$percent_laon_rec <- mainData$funded_amnt/mainData$loan_amnt
+
+# imputing(kind of)
+mainData$id <- 1:length(mainData$id)
+```
+# Project 1 Markdown
+###### By: Allen Thornberry
+
+***
+# Table of Contents
+- [Data Acquisition]
+- [Data Description]
+- [General Information]
+- [Prominent Features]
+- [Interesting Trends and Features]
+
+***
+# Data Acquisition
+This report is based on the data from [Lending Club](https://www.lendingclub.com/info/download-data.action). In order to download the data, go to the link embedded in the previous sentence and click the button under the header that says "Download Loan Data, 2007-2011." To recreate any of the results in this report, the data set will need to be downloaded, and the data will need to be inserted in the `read.csv()`(found in the .Rmd file provided) lines with the new file path created on the computer. The file path should be written in a form similar to `C:\\user\\file\\data.csv`.
+
+***
+# Data Description
+This file contains a complete set of loan data for all loans issued through the time period stated(2007 - 2011) through the Lending Club, including the current loan status (Current, Late, Fully Paid, etc.) and latest payment information. Also the loan data contains complete data for all loans issued through the previous completed calendar quarter(up through October, 2011). Some variables from the original data set have been excluded because they were not important to create the findings. The important variables in the data set include:
+
+* ID - numbered by number of loans from 1 - 42540
+* loan_amnt - requested amount of each laon
+* funded_amnt - actual given amount for loan
+* funded_amnt_inv - amount of the funded amount actually invested
+* term - number of payments on loan, in terms of month
+* int_rate - interest rate of the loan
+* installment - monthly payment amount
+* grade - how risky the loan reciever is
+* sub_grade - a more specific quality score of loan receiver
+* emp_title - name of company to take out the loans
+* emp_length - how long the business has been open(0 means less than a year, and 10 means greater than or equal to a year)
+* home_ownership - in terms of rent, own, mortgage, and other
+* annual_income - self reported annual income of loan reciever
+* verification_status - states whether the source was verified or not
+* issue_d - date loan was issued
+* loan_status - status of the loan
+* pymnt_plan - indicates if there has been a payment plan implemented for the loan
+* dti - A ratio calculated using the borrower’s total monthly debt payments on the total debt obligations, excluding mortgage and the requested LC loan, divided by the borrower’s self-reported monthly income.
+* delinq_2yrs - the number of times a payment was 30+ days past due in the last two years
+* earliest_cr_line - date the borrower's earliest line of credit was opened
+* inq_last_6mths - number of inquiries in the last 6 months(exculding car and mortgage inquiries)
+* mths_since_last_delinq - months since last delinquent payment
+* open_acc - number of open cedit lines in borrower's credit file
+* revol_bal - how much has not been taken out on a node
+* revol_util - ratio of balance used
+* total_acc - total number of credit lines in borrower's credit file
+* out_prncp - oustanding principal
+* total_pymnt - payment recieved for funded amount
+* total_rec_prncp - total principle recieved to date
+* total_rec_int - total interest recieved to date
+* total_rec_late_fee - total amount earned in late fees
+* last_pymnt_d - last payment's date
+* last_pymnt_amount - last payment's paid amount
+* pub_rec_bankruptcies - number of recorded public bankruptcies
+
+Back to [Table of Contents]
+
+***
+# General Information
+A majority of the information pulled from this data set is easily understood. Most people would assume that if someone has a bad credit score then that someone will have a higher interest rate to pay on a loan. This is because a person with a poor credit line will be a higher risk investment for the company or bank offering a loan. Similar to this concept there are more straight forward correlations that can be shown by taking a deeper look at the data set itself.  
+
+Some of the more prominent general findings can be found below. The first is based off a graph of installment amounts(monthly payment amounts) and the amount of the loan. Based off the data provided the larger the loan, the larger the average installment will be.
+```{r, echo=FALSE}
+plot(mainData$loan_amnt, mainData$installment, main = "Loan Amount vs. Installments", xlab = "Loan Amount", ylab = "Installments")
+```
+
+
+It is important to think about the relationship between the amounts requested by borrowers and the amounts funded to borrowers. A majority of loans acquire the full amount of the requested loan, but due to a few reasons the requested amount is not always needed oreven given.
+```{r, echo=FALSE}
+plot(mainData$loan_amnt, mainData$funded_amnt, main = "Loan Amount vs. Funded Amount", xlab = "Loan Amount", ylab = "Funded Amount")
+```
+
+Back to [Table of Contents]
+
+***
+# Prominent Features
+One of the most prominent features of this data set is displayed by the relationship of both the grade and the sub grade versus the total interest recieved from each borrower. The findings displayed by the graphs below portray how each grade and sub grade affect the amount of money a lender would make from a borrower within a specific credit risk grade.
+
+A loan reciever with a high credit risk grade will have inflated interest rates, longer terms, and prolonged out standing balances. This will inevitably create more profitablility from riskier candidates, following a basic rule of investment, though not always true, high risk equals high reqards.
+
+```{r, echo=FALSE}
+plot(mainData$grade, mainData$total_rec_int, main = "Grade vs. Total Interest Recieved", xlab = "Grade", ylab = "Total Interest Recieved")
+```
+
+The break down from grades to sub grades helps to identify the thresh holds in which too much risk will not create profitability. For example, take a look at the ratio between sub grade G2 and sub grade G5. This shows that within one full grade, G, there is an entirely different distribution of profit among high risk borrowers.
+
+```{r, echo=FALSE}
+plot(mainData$sub_grade, mainData$total_rec_int, main = "Sub Grade vs. Total Interest Recieved", xlab = "Sub Grade", ylab = "Total Interest Recieved")
+```
+
+Back to [Table of Contents]
+
+***
+# Interesting Trends and Features
+After taking a thorough look at all the data, there were a couple of interesting trends to be noted. All these trends are intriguing, but with some slight thought and an explanation they are all relatively simple.
+
+The following graph deals with the risk grade of a borrower and how much money is requested by the borrower. It is interesting to note that those with a higher grade, meaning they are not super risky, generally ask for smaller loan amounts. While on the other hand those with lower risk grades ask for slightly larger loans.
+
+```{r, echo=FALSE}
+plot(mainData$grade, mainData$loan_amnt, main = "Loan Amount vs. Grade", xlab = "Grade", ylab = "Loan Amount")
+```
+
+Another interesting relationship is found in a comparison similar to above. It is interesting to see that the relationship between the risk grade of a borrower and the funded amount to the borrower is close to the above relationship. Normally it would be thought that the funded amount would be higher with borrowers of a better grade class, but since higher grade classes request lower loan amounts, their funded amount tends to be lower as well. Take note of the outliers in grade A, these borrowers tend to have more freedom of choice in selecting loan amounts because of their low risk.
+
+```{r, echo=FALSE}
+plot(mainData$grade, mainData$funded_amnt, main = "Funded Amount vs. Grade", xlab = "Grade", ylab = "Funded amount")
+
+```
+
+Interestingly enough the relation between the annual income of a borrower and the risk grade of a borrower implies that annual income does not have a strong effect on the a borrower's credit risk grade. This makes sense since credit is based on past credit accounts and not the account holder's income.
+
+```{r, echo=FALSE}
+plot(mainData$grade, mainData$annual_inc, main = "Annual Income vs. Grade", xlab = "Grade", ylab = "Annual Income")
+```
+
+The next graph shows how the risk sub grade of a borrower effects the funded amount of each borrower. This observation may not seem obvious at first, but since a risk sub grade is a sub catagory under risk grades it clearifies that higher risk borrowers tend to request larger amounts of money. It is also important to note that, although the spread of funded amounts is lower in higher grades and sub grades, the outliers of the boxplot show that a borrower with a high grade and sub grade has more freedom in choosing a borrowed amount.
+
+```{r, echo=FALSE}
+plot(mainData$sub_grade, mainData$funded_amnt, main = "Funded Amount vs. Sub Grade", xlab = "Sub Grade", ylab = "Funded Amount")
+```
+
+The last interesting observation relates to the verification status and the funded amount of borrowers. This is an apparent observation, but it is important to understand since it depicts the effects of being verified. The more verified a borrower is, the more likely a company or bank will lend money to the borrower.
+
+```{r, echo=FALSE}
+plot(mainData$verification_status, mainData$funded_amnt, type = "h", main = "Verification Status vs. Funded Amount", xlab = "Verification Status", ylab = "Funded Amount")
+```
+
+Back to [Table of Contents]
+
+***
+#### Index
+- [Project 1 Markdown]
+- [Data Acquisition]
+- [Data Description]
+- [General Information]
+- [Prominent Features]
+- [Interesting Trends and Features]
