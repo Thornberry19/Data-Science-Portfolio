@@ -1,7 +1,7 @@
 # School-Data-Science-Projects
 This repository is a collection of finished data science projects I completed while in school. The README file will have a synopsis for each project. All projects were completed in R,including, an R script, an R markdown, and HTML file. Only the HTML file needs to be downloaded/opened to view the results of the project. Please keep in mind that the R scripts are preliminary results and the R markdown file is the final version.
 
-In order to view the report, please proceed to the link for the desired project below.
+In order to view the report, please proceed to the link for the desired project below. If you would like to open the link in a new tab please use ALT+click.
 
 ---
 
